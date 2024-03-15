@@ -8,7 +8,7 @@ describe GroupedValidations do
   end
 
   it "should add validation_group class method" do
-    Person.should respond_to(:validation_group)
+    expect(Person).to respond_to(:validation_group)
   end
 
   describe ".validation_group" do
@@ -16,33 +16,33 @@ describe GroupedValidations do
       Person.class_eval do
         validation_group(:dummy) { }
       end
-      Person.validation_groups.should == [:dummy]
+      expect(Person.validation_groups).to eq([:dummy])
     end
 
     it "it should add group_valid? method which takes a group name param" do
       Person.class_eval do
         validation_group(:dummy) { }
       end
-      
-      person.group_valid?(:dummy)
+
+      expect(person.group_valid?(:dummy)).to be true
     end
 
     it "it should not overwrite group when defined again" do
       Person.class_eval do
-        validation_group(:name) { 
+        validation_group(:name) {
           validates_presence_of :first_name
         }
 
-        validation_group(:name) { 
+        validation_group(:name) {
           validates_presence_of :last_name
         }
       end
-      
+
       person.group_valid?(:name)
-      
-      person.should have(2).errors
-      person.errors[:first_name].should_not be_empty
-      person.errors[:last_name].should_not be_empty
+
+      expect(person.errors.count).to eq(2)
+      expect(person.errors[:first_name]).not_to(be_empty)
+      expect(person.errors[:last_name]).not_to(be_empty)
     end
 
     context "with options" do
@@ -55,11 +55,11 @@ describe GroupedValidations do
           end
 
           person.group_valid?(:name)
-          person.should have(1).errors
+          expect(person.errors.count).to eq(1)
 
           person.last_name = 'smith'
           person.group_valid?(:name)
-          person.should have(0).errors
+          expect(person.errors.count).to eq(0)
         end
 
         it 'should not override explicit validation method options' do
@@ -70,7 +70,7 @@ describe GroupedValidations do
           end
 
           person.group_valid?(:name)
-          person.should have(0).errors
+          expect(person.errors.count).to eq(0)
         end
       end
 
@@ -83,11 +83,11 @@ describe GroupedValidations do
           end
 
           person.group_valid?(:name)
-          person.should have(1).errors
+          expect(person.errors.count).to eq(1)
 
           person.last_name = 'smith'
           person.group_valid?(:name)
-          person.should have(0).errors
+          expect(person.errors.count).to eq(0)
         end
 
         it 'should not override explicit options' do
@@ -98,7 +98,7 @@ describe GroupedValidations do
           end
 
           person.group_valid?(:name)
-          person.should have(0).errors
+          expect(person.errors.count).to eq(0)
         end
 
         it 'should not apply options to validations methods not using block argument' do
@@ -110,8 +110,8 @@ describe GroupedValidations do
           end
 
           person.group_valid?(:name)
-          person.errors[:first_name].should be_empty
-          person.errors[:last_name].should_not be_empty
+          expect(person.errors[:first_name]).to be_empty
+          expect(person.errors[:last_name]).not_to be_empty
         end
       end
     end
@@ -125,18 +125,18 @@ describe GroupedValidations do
           validates_presence_of :last_name
         end
       end
-      
+
       person.group_valid?(:name)
-      person.should have(2).errors
+      expect(person.errors.count).to eq(2)
 
       person.first_name = 'Dave'
       person.last_name = 'Smith'
       person.group_valid?(:name)
-      person.should have(0).errors
+      expect(person.errors.count).to eq(0)
     end
 
     it "should raise exception if valiation group not defined" do
-      expect { person.group_valid?(:dummy) }.should raise_exception
+      expect { person.group_valid?(:dummy) }.to raise_exception
     end
 
     it "should run all validation groups passed to groups_valid?" do
@@ -148,9 +148,9 @@ describe GroupedValidations do
           validates_presence_of :last_name
         end
       end
-      
+
       person.groups_valid?(:first_name_group, :last_name_group)
-      person.should have(2).errors
+      expect(person.errors.count).to eq(2)
     end
 
     context "with validation context" do
@@ -160,19 +160,19 @@ describe GroupedValidations do
             validates_presence_of :last_name, :on => :update
           end
         end
-        
+
         person.persisted = false
         person.last_name = nil
         person.group_valid?(:name, :context => :create)
-        person.should have(0).errors
+        expect(person.errors.count).to eq(0)
 
         person.persisted = true
         person.group_valid?(:name, :context => :update)
-        person.should have(1).errors
+        expect(person.errors.count).to eq(1)
 
         person.last_name = 'Smith'
         person.group_valid?(:name)
-        person.should have(0).errors
+        expect(person.errors.count).to eq(0)
       end
 
       it "should run only validations for implicit model context" do
@@ -184,16 +184,16 @@ describe GroupedValidations do
 
         person.persisted = false
         person.group_valid?(:name)
-        person.should have(1).errors
+        expect(person.errors.count).to eq(1)
 
         person.first_name = 'Dave'
         person.group_valid?(:name)
-        person.should have(0).errors
+        expect(person.errors.count).to eq(0)
 
         person.persisted = true
         person.first_name = nil
         person.group_valid?(:name)
-        person.should have(0).errors
+        expect(person.errors.count).to eq(0)
       end
 
     end
@@ -210,9 +210,9 @@ describe GroupedValidations do
         end
         validates_presence_of :sex
       end
-      
+
       person.valid?
-      person.should have(3).errors
+      expect(person.errors.count).to eq(3)
     end
   end
 
@@ -232,13 +232,13 @@ describe GroupedValidations do
     it 'should return hash of error hashes with validation groups as keys' do
       errors = person.grouped_errors
 
-      errors[:first_name_group][:first_name].should eq ["can't be blank"]
-      errors[:last_name_group][:last_name].should eq ["can't be blank"]
+      expect(errors[:first_name_group][:first_name]).to eq ["can't be blank"]
+      expect(errors[:last_name_group][:last_name]).to eq ["can't be blank"]
     end
 
     it 'should return hash of errors for validations outside a validation group, for nil key' do
       errors = person.grouped_errors
-      errors[nil][:sex].should == ["can't be blank"]
+      expect(errors[nil][:sex]).to eq(["can't be blank"])
     end
 
     it 'should be empty if no errors' do
@@ -246,7 +246,7 @@ describe GroupedValidations do
       person.last_name = 'Smith'
       person.sex = 'Male'
 
-      person.grouped_errors.should be_empty
+      expect(person.grouped_errors).to be_empty
     end
 
     it 'should allow empty check on a group even when no errors for any group' do
@@ -254,8 +254,8 @@ describe GroupedValidations do
       person.last_name = 'Smith'
       person.sex = 'Male'
 
-      person.grouped_errors[:first_name_group].should be_empty
-      person.grouped_errors[:not_a_group].should be_nil
+      expect(person.grouped_errors[:first_name_group]).to be_empty
+      expect(person.grouped_errors[:not_a_group]).to be_nil
     end
 
     it 'should be empty for group with no errors while other groups have errors' do
@@ -263,7 +263,7 @@ describe GroupedValidations do
       person.last_name = 'Smith'
       person.sex = 'Male'
 
-      person.grouped_errors[:last_name_group].should be_empty
+      expect(person.grouped_errors[:last_name_group]).to be_empty
     end
   end
 
@@ -278,7 +278,7 @@ describe GroupedValidations do
   #     end
   #   end
 
-  #   
+  #
   #   person.group_valid?(:name)
   #   puts person.errors.inspect
   #   person.should have(2).errors
