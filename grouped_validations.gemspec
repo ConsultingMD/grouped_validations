@@ -21,7 +21,7 @@ Gem::Specification.new do |s|
   s.require_paths    = ["lib"]
   s.autorequire      = %q{grouped_validations}
 
-  spec.add_runtime_dependency 'activemodel', '>= 5.2', '< 6'
+  s.add_runtime_dependency 'activemodel', '>= 5.2', '< 6'
 
-  spec.add_development_dependency 'rake', '~> 13.0'
+  s.add_development_dependency 'rake', '~> 13.0'
 end
